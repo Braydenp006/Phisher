@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, render_template_string
 import csv
 import os
 import json
@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 LOG_FILE = "logs/clicks.csv"
 LANDING_PAGE = "landing_page.html"
-GOOGLE_SHEET_ID = "1hALSUrXjg_qcru93HeSjlbalYr04sFMtLz6xzGR8nvU"  # Replace this with your actual Sheet ID
+GOOGLE_SHEET_ID = "YOUR_GOOGLE_SHEET_ID_HERE"  # Replace this with your actual Sheet ID
 
 # Google Sheets logging using environment variable
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -44,6 +44,43 @@ def track():
 @app.route("/")
 def index():
     return send_file(LANDING_PAGE)
+
+@app.route("/done")
+def done():
+    return render_template_string("""
+        <html>
+        <head>
+            <title>You've Been Phished!</title>
+            <style>
+                body {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    background-color: #f2f2f2;
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                }
+                .message {
+                    background: white;
+                    padding: 40px;
+                    border-radius: 10px;
+                    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+                }
+                .emoji {
+                    font-size: 64px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="message">
+                <div class="emoji">😄</div>
+                <h1>You’ve Been Scammed!</h1>
+                <p>Fortunately, it was just a test by your own company to raise awareness. Stay sharp!</p>
+            </div>
+        </body>
+        </html>
+    """)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
