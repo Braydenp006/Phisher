@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: phishing-landing-page
+    env: python
+    plan: free
+    buildCommand: ""
+    startCommand: "python landing_server.py"
