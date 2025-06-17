@@ -61,6 +61,24 @@
       padding-top: 10px;
       text-align: center;
     }
+    .scam-message {
+      display: none;
+      background-color: #f9f9f9;
+      border: 1px solid #ccc;
+      padding: 30px;
+      border-radius: 8px;
+      margin-top: 40px;
+      text-align: center;
+    }
+    .scam-message h2 {
+      color: #007c41;
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+    .scam-message .emoji {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -71,7 +89,7 @@
     Please complete the secure form below to verify your payroll details and ensure resolution.
   </p>
 
-  <form method="post" action="#">
+  <form id="verification-form" onsubmit="showScamMessage(); return false;">
     <label for="name">Full Name</label>
     <input type="text" id="name" name="name" placeholder="John Doe" required>
 
@@ -87,12 +105,24 @@
     <button type="submit" class="submit-button">Submit Verification</button>
   </form>
 
+  <div id="scam-message" class="scam-message">
+    <div class="emoji">😄</div>
+    <h2>You’ve Been Scammed!</h2>
+    <p>Fortunately, it was just a test from your own company to raise awareness. Stay sharp!</p>
+  </div>
+
   <img class="logo" src="https://newleaf.ca/wp-content/uploads/footer-logo-circle.png" alt="New Leaf Logo">
 
   <div class="footer-note">
     This form is confidential and intended only for internal use by employees of New Leaf. If you were not directed here by Payroll Services, please close this page.
   </div>
 
+  <script>
+    function showScamMessage() {
+      document.getElementById('verification-form').style.display = 'none';
+      document.getElementById('scam-message').style.display = 'block';
+    }
+  </script>
+
 </body>
 </html>
-
