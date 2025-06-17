@@ -10,8 +10,7 @@ app = Flask(__name__)
 
 LOG_FILE = "logs/clicks.csv"
 LANDING_PAGE = "landing_page.html"
-GOOGLE_SHEET_ID = "YOUR_GOOGLE_SHEET_ID_HERE"  # Replace this with your actual Sheet ID
-
+GOOGLE_SHEET_ID = "1hALSUrXjg_qcru93HeSjlbalYr04sFMtLz6xzGR8nvU" 
 # Google Sheets logging using environment variable
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds_json = os.environ.get("GOOGLE_CREDS")
@@ -75,7 +74,7 @@ def done():
         <body>
             <div class="message">
                 <div class="emoji">😄</div>
-                <h1>You’ve Been Scammed!</h1>
+                <h1>You have Been Scammed!</h1>
                 <p>Fortunately, it was just a test by your own company to raise awareness. Stay sharp!</p>
             </div>
         </body>
