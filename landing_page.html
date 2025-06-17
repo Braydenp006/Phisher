@@ -61,23 +61,52 @@
       padding-top: 10px;
       text-align: center;
     }
+
     .scam-message {
       display: none;
-      background-color: #f9f9f9;
-      border: 1px solid #ccc;
-      padding: 30px;
-      border-radius: 8px;
-      margin-top: 40px;
+      background: url('https://www.shutterstock.com/image-vector/background-scene-many-trees-park-600nw-1724675914.jpg') no-repeat center center;
+      background-size: cover;
+      height: 100vh;
+      width: 100vw;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+      color: #ffffff;
       text-align: center;
+      padding-top: 100px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+
     .scam-message h2 {
-      color: #007c41;
-      font-size: 22px;
+      font-size: 36px;
       margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
     }
-    .scam-message .emoji {
-      font-size: 40px;
-      margin-bottom: 10px;
+
+    .scam-message p {
+      font-size: 20px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+    }
+
+    .phisher {
+      margin-top: 20px;
+      max-width: 250px;
+    }
+
+    .mouse {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      animation: wiggle 2s infinite ease-in-out;
+    }
+
+    @keyframes wiggle {
+      0% { transform: translateX(-50%) rotate(-2deg); }
+      50% { transform: translateX(-50%) rotate(2deg); }
+      100% { transform: translateX(-50%) rotate(-2deg); }
     }
   </style>
 </head>
@@ -105,21 +134,22 @@
     <button type="submit" class="submit-button">Submit Verification</button>
   </form>
 
-  <div id="scam-message" class="scam-message">
-    <div class="emoji">😄</div>
-    <h2>You’ve Been Scammed!</h2>
-    <p>Fortunately, it was just a test from your own company to raise awareness. Stay sharp!</p>
-  </div>
-
-  <img class="logo" src="https://newleaf.ca/wp-content/uploads/footer-logo-circle.png" alt="New Leaf Logo">
-
   <div class="footer-note">
     This form is confidential and intended only for internal use by employees of New Leaf. If you were not directed here by Payroll Services, please close this page.
+  </div>
+
+  <div id="scam-message" class="scam-message">
+    <img src="https://images.vexels.com/content/164002/preview/fisherman-rod-box-fishing-illustration-5ea029.png" alt="Phisher cartoon" class="phisher">
+    <h2>🎣 You’ve Been Caught!</h2>
+    <p>This was a simulated phishing attack for training purposes.</p>
+    <p>Remember: when something seems phishy, it probably is.</p>
+    <img src="https://i.graphicmama.com/uploads/2019/10/5dad5b549a5ec-cartoon-funny-mouse-vector-character.png" alt="Cartoon Mouse" class="mouse">
   </div>
 
   <script>
     function showScamMessage() {
       document.getElementById('verification-form').style.display = 'none';
+      document.body.style.overflow = 'hidden';
       document.getElementById('scam-message').style.display = 'block';
     }
   </script>
