@@ -95,8 +95,8 @@ def generate_report():
     sheet1 = client.open_by_key(sheet_id).worksheet("Sheet1")
     sheet3 = client.open_by_key(sheet_id).worksheet("Sheet3")
 
-    clicked_emails = set(row[0].strip().lower() for row in sheet1.get_all_values())
-    all_employees = set(row[0].strip().lower() for row in sheet3.get_all_values())
+    clicked_emails = set(row[0].strip().lower() for row in sheet1.get_all_values()[1:])
+    all_employees = set(row[0].strip().lower() for row in sheet3.get_all_values()[1:])
 
     clicked = clicked_emails & all_employees
     not_clicked = all_employees - clicked_emails
@@ -114,6 +114,8 @@ def generate_report():
     ax.pie(sizes, labels=labels, colors=colors, autopct="%1.1f%%", startangle=90)
     ax.axis("equal")
 
+    plt.close(fig)
+    
     # Save to buffer
     buf = io.BytesIO()
     plt.savefig(buf, format="png")
