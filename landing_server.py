@@ -8,18 +8,15 @@ app = Flask(__name__)
 LOG_FILE = "logs/activity.csv"
 os.makedirs("logs", exist_ok=True)
 
-# In-memory store for tracking counts and timestamps of opens
 open_tracker = {}
 lock = threading.Lock()
 
-# Parameters
 IGNORE_FIRST_N = 2
-TRACKING_WINDOW_SECONDS = 60 * 5  # 5 minutes window to reset counts
+TRACKING_WINDOW_SECONDS = 60 * 5
 
-# Known scanning user agents (case-insensitive)
 SCANNER_USER_AGENTS = [
-    "Microsoft Outlook",        # Outlook web preview user agent often used by Defender
-    "Microsoft Office/16.0",    # MS Office/Defender UA pattern
+    "Microsoft Outlook",
+    "Microsoft Office/16.0",
     "Microsoft Defender",
     "OutlookService",
     "MSIPC",
@@ -36,7 +33,6 @@ def is_scanner(user_agent):
     return False
 
 def clean_old_entries():
-    """Remove entries older than tracking window."""
     cutoff = datetime.now() - timedelta(seconds=TRACKING_WINDOW_SECONDS)
     with lock:
         for key in list(open_tracker.keys()):
@@ -45,8 +41,6 @@ def clean_old_entries():
                 del open_tracker[key]
 
 def should_log_open(uid, ip, user_agent):
-    """Return True if this open event should be logged, False if ignored."""
-    # Ignore known scanners completely
     if is_scanner(user_agent):
         return False
 
@@ -56,15 +50,12 @@ def should_log_open(uid, ip, user_agent):
         clean_old_entries()
         if key not in open_tracker:
             open_tracker[key] = (now, 1)
-            return False  # First open ignored
+            return False
         else:
             last_time, count = open_tracker[key]
             count += 1
             open_tracker[key] = (now, count)
-            if count <= IGNORE_FIRST_N:
-                return False  # Ignore first N opens
-            else:
-                return True  # Log from (N+1)th open onwards
+            return count > IGNORE_FIRST_N
 
 def log_event(event_type, uid, data=None):
     with open(LOG_FILE, "a", newline="") as f:
@@ -83,12 +74,14 @@ def log():
             log_event(event, uid)
             return jsonify({"status": "logged"})
         else:
-            # Ignored due to scanner or first 2 opens
             return jsonify({"status": "ignored"})
     else:
-        # Log all other events immediately
         log_event(event, uid)
         return jsonify({"status": "logged"})
+
+@app.route("/")
+def index():
+    return "Tracker is running."
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
