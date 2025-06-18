@@ -15,11 +15,12 @@ app = Flask(__name__)
 
 GOOGLE_SHEET_ID = os.environ.get("GOOGLE_SHEET_ID")
 LANDING_PAGE = "landing_page.html"
+REPORT_PAGE = "report.html"
 LOG_FILE = "logs/clicked_users.csv"
 
 # Deduplication setup
 recent_clicks = defaultdict(lambda: datetime.min)
-DEDUPLICATION_WINDOW = timedelta(seconds=3)
+DEDUPLICATION_WINDOW = timedelta(seconds=15)
 
 # Setup Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -133,14 +134,8 @@ def generate_report():
         else:
             status = "✅ LOW RISK"
     
-        html = f"""
-        <h1>Phishing Test Report</h1>
-        <p><strong>Total Employees:</strong> {total}</p>
-        <p><strong>Clicked:</strong> {clicked_count}</p>
-        <p><strong>Did Not Click:</strong> {not_clicked_count}</p>
-        <p><strong>Status:</strong> {status}</p>
-        <img src="data:image/png;base64,{image_base64}" />
-        """
+        with open(REPORT_PAGE, "r") as f:
+            html = f.read()
     
         return render_template_string(html)
 
