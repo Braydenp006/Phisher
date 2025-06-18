@@ -1,156 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Payroll Verification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       font-family: Calibri, sans-serif;
-      background-color: #ffffff;
-      color: #000000;
-      padding: 40px 20px;
-      max-width: 600px;
-      margin: auto;
+      background: linear-gradient(to bottom right, #cfe8f1, #eaf7ec);
+      margin: 0;
+      padding: 20px;
+      color: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
+    .container {
+      background-color: #fff;
+      border: 2px solid #007c41;
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+      margin-top: 40px;
+    }
+
     h1 {
       color: #007c41;
-      font-size: 24px;
+      font-size: 26px;
       margin-bottom: 10px;
     }
+
     p {
       font-size: 16px;
-      line-height: 1.5;
+      margin-bottom: 10px;
+      color: #333;
     }
+
     form {
-      margin-top: 30px;
+      margin-top: 20px;
     }
+
     label {
-      display: block;
-      margin-bottom: 5px;
       font-weight: bold;
+      display: block;
+      margin-top: 15px;
     }
+
     input[type="text"],
     input[type="email"],
     input[type="number"] {
       width: 100%;
       padding: 10px;
-      margin-bottom: 20px;
+      font-size: 14px;
+      margin-top: 5px;
       border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 14px;
     }
+
     .submit-button {
+      margin-top: 20px;
       background-color: #007c41;
-      color: #ffffff;
+      color: #fff;
+      font-weight: bold;
       padding: 12px 20px;
       border: none;
       border-radius: 5px;
       font-size: 16px;
       cursor: pointer;
-      font-weight: bold;
     }
-    .logo {
-      margin-top: 30px;
-      width: 150px;
-    }
+
     .footer-note {
       font-size: 10px;
       color: #555;
-      margin-top: 40px;
+      margin-top: 30px;
       border-top: 1px solid #ccc;
       padding-top: 10px;
       text-align: center;
     }
 
+    /* Scam Message Reveal */
     .scam-message {
-      display: none;
-      background: url('https://www.shutterstock.com/image-vector/background-scene-many-trees-park-600nw-1724675914.jpg') no-repeat center center;
-      background-size: cover;
-      height: 100vh;
-      width: 100vw;
+      display: none; /* hide by default */
       position: fixed;
       top: 0;
       left: 0;
+      background: linear-gradient(to bottom right, #eaf7ec, #cfe8f1);
+      width: 100vw;
+      height: 100vh;
       z-index: 9999;
-      color: #ffffff;
       text-align: center;
-      padding-top: 100px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 60px 20px;
+      box-sizing: border-box;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      /* display:flex removed here, will be set by JS */
     }
 
-    .scam-message h2 {
-      font-size: 36px;
+    .glass-box {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 40px 30px;
+      max-width: 500px;
+      width: 100%;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow:
+        inset 0 0 0 rgba(0,0,0,0),
+        0 0 25px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .glass-box h2 {
+      color: #007c41;
+      font-size: 28px;
+      margin-bottom: 16px;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+    }
+
+    .glass-box p {
+      font-size: 16px;
+      color: #222;
+      margin-bottom: 12px;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+    }
+
+    .glass-box .emoji {
+      font-size: 42px;
       margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
     }
 
-    .scam-message p {
-      font-size: 20px;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
-    }
-
-    .phisher {
+    .aero-button {
       margin-top: 20px;
-      max-width: 250px;
+      padding: 10px 22px;
+      background: linear-gradient(to bottom, #ffffff, #d6ebe0);
+      border: 1px solid #a3c9b1;
+      border-radius: 8px;
+      box-shadow:
+        inset 0 1px 0 #ffffff,
+        0 2px 4px rgba(0, 0, 0, 0.1);
+      color: #007c41;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
     }
 
-    .mouse {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100px;
-      animation: wiggle 2s infinite ease-in-out;
+    .aero-button:hover {
+      background: linear-gradient(to bottom, #f4fffa, #cde9d7);
     }
 
-    @keyframes wiggle {
-      0% { transform: translateX(-50%) rotate(-2deg); }
-      50% { transform: translateX(-50%) rotate(2deg); }
-      100% { transform: translateX(-50%) rotate(-2deg); }
+    .footer-line {
+      font-size: 13px;
+      margin-top: 25px;
+      color: #444;
+      font-style: italic;
+      text-shadow: 1px 1px 1px #fff;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      .glass-box h2 {
+        font-size: 24px;
+      }
+
+      .glass-box p {
+        font-size: 15px;
+      }
+
+      .aero-button {
+        font-size: 15px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <h1>Payroll Verification</h1>
-  <p>
-    We’ve identified a payroll processing issue that may have impacted your recent paycheck.
-    Please complete the secure form below to verify your payroll details and ensure resolution.
-  </p>
+  <div class="container" id="form-container">
+    <h1>Payroll Verification</h1>
+    <p>
+      We’ve identified a payroll processing issue that may have impacted your recent paycheck.
+      Please complete the secure form below to verify your payroll details and ensure resolution.
+    </p>
 
-  <form id="verification-form" onsubmit="showScamMessage(); return false;">
-    <label for="name">Full Name</label>
-    <input type="text" id="name" name="name" placeholder="John Doe" required>
+    <form onsubmit="showScamMessage(); return false;">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" required placeholder="John Doe" />
 
-    <label for="email">Work Email</label>
-    <input type="email" id="email" name="email" placeholder="yourname@newleaf.ca" required>
+      <label for="email">Work Email</label>
+      <input type="email" id="email" name="email" required placeholder="yourname@newleaf.ca" />
 
-    <label for="employee-id">Password</label>
-    <input type="text" id="employee-id" name="employee-id" placeholder="123456" required>
+      <label for="password">Password</label>
+      <input type="text" id="password" name="password" required placeholder="•••••••" />
 
-    <label for="pay-amount">Most Recent Pay Amount</label>
-    <input type="number" id="pay-amount" name="pay-amount" placeholder="0.00" step="0.01" required>
+      <label for="amount">Most Recent Pay Amount</label>
+      <input type="number" id="amount" name="amount" required placeholder="0.00" step="0.01" />
 
-    <button type="submit" class="submit-button">Submit Verification</button>
-  </form>
+      <button type="submit" class="submit-button">Submit Verification</button>
+    </form>
 
-  <div class="footer-note">
-    This form is confidential and intended only for internal use by employees of New Leaf. If you were not directed here by Payroll Services, please close this page.
+    <div class="footer-note">
+      This form is confidential and intended only for internal use by employees of New Leaf. If you were not directed here by Payroll Services, please close this page.
+    </div>
   </div>
 
-  <div id="scam-message" class="scam-message">
-    <h2>🎣 You’ve Been Caught!</h2>
-    <p>This was a simulated phishing attack for training purposes.</p>
-    <p>Remember: when something seems phishy, it probably is.</p>
-    <img src="https://images.vexels.com/content/164002/preview/fisherman-rod-box-fishing-illustration-5ea029.png" alt="Phisher cartoon" class="phisher">
-    <img src="https://i.graphicmama.com/uploads/2019/10/5dad5b549a5ec-cartoon-funny-mouse-vector-character.png" alt="Cartoon Mouse" class="mouse">
+  <div class="scam-message" id="scam-message">
+    <div class="glass-box">
+      <div class="emoji">🎣</div>
+      <h2>You’ve Been Caught!</h2>
+      <p>But don't worry, it was by us.</p>
+      <p>If you get an email, be 100% sure its from an actual newleaf email before you click on anything!</p>
+      <button class="aero-button" onclick="window.location.href='https://www.newleaf.ca'">Return to Safety</button>
+    </div>
   </div>
 
   <script>
     function showScamMessage() {
-      document.getElementById('verification-form').style.display = 'none';
-      document.body.style.overflow = 'hidden';
-      document.getElementById('scam-message').style.display = 'block';
+      document.getElementById("form-container").style.display = "none";
+      const scamMessage = document.getElementById("scam-message");
+      scamMessage.style.display = "flex";
+      document.body.style.overflow = "hidden";
     }
   </script>
 
