@@ -1,8 +1,11 @@
-from flask import Flask, request, redirect, url_for, render_template_string
+from flask import Flask, request, redirect, url_for, render_template_string, send_file, render_template_string
 import csv
 import os
 import json
 import re
+import base64
+import io
+import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -81,6 +84,62 @@ def log_bot_click(info):
         sheet_bot.append_row(info)
     except Exception as e:
         print(f"Error writing to bot sheet: {e}")
+
+import matplotlib.pyplot as plt
+import io
+import base64
+from flask import Flask, send_file, render_template_string
+
+@app.route("/report")
+def generate_report():
+    sheet1 = client.open_by_key(sheet_id).worksheet("Sheet1")
+    sheet3 = client.open_by_key(sheet_id).worksheet("Sheet3")
+
+    clicked_emails = set(row[0].strip().lower() for row in sheet1.get_all_values())
+    all_employees = set(row[0].strip().lower() for row in sheet3.get_all_values())
+
+    clicked = clicked_emails & all_employees
+    not_clicked = all_employees - clicked_emails
+
+    total = len(all_employees)
+    clicked_count = len(clicked)
+    not_clicked_count = len(not_clicked)
+
+    # Generate pie chart
+    labels = ["Clicked", "Did Not Click"]
+    sizes = [clicked_count, not_clicked_count]
+    colors = ["red", "green"]
+
+    fig, ax = plt.subplots()
+    ax.pie(sizes, labels=labels, colors=colors, autopct="%1.1f%%", startangle=90)
+    ax.axis("equal")
+
+    # Save to buffer
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    image_base64 = base64.b64encode(buf.read()).decode("utf-8")
+    buf.close()
+
+    # Hazard Rating
+    danger_rating = (clicked_count / total) * 100
+    if danger_rating > 50:
+        status = "🚨 HIGH RISK"
+    elif danger_rating > 25:
+        status = "⚠️ MEDIUM RISK"
+    else:
+        status = "✅ LOW RISK"
+
+    html = f"""
+    <h1>Phishing Test Report</h1>
+    <p><strong>Total Employees:</strong> {total}</p>
+    <p><strong>Clicked:</strong> {clicked_count}</p>
+    <p><strong>Did Not Click:</strong> {not_clicked_count}</p>
+    <p><strong>Status:</strong> {status}</p>
+    <img src="data:image/png;base64,{image_base64}" />
+    """
+
+    return render_template_string(html)
 
 @app.route("/track")
 def track():
