@@ -51,17 +51,28 @@ def log_email(uid):
 def track():
     uid = request.args.get("uid", "UNKNOWN")
     user_agent = request.user_agent.string.lower()
+    ip_address = request.remote_addr
 
+    # Known bot indicators in User-Agent
     bot_indicators = [
         "microsoft", "defender", "prefetch", "bingpreview",
         "healthcheck", "outlook", "curl", "wget", "bot"
     ]
 
-    # If it's a bot or prefetch, skip logging
-    if any(bot in user_agent for bot in bot_indicators):
+    # Known Microsoft Defender IP ranges (sample, partial list)
+    defender_ips = [
+        "13.66.", "13.67.", "20.36.", "20.37.", "20.38.",
+        "20.40.", "20.41.", "20.42.", "52.174.", "40.94."
+    ]
+
+    is_bot_ua = any(bot in user_agent for bot in bot_indicators)
+    is_defender_ip = any(ip_address.startswith(prefix) for prefix in defender_ips)
+
+    if is_bot_ua or is_defender_ip:
+        print(f"Filtered bot click from IP: {ip_address}, UA: {user_agent}")
         return redirect(url_for("landing", uid=uid))
 
-    # Log unique user clicks
+    # Log only real user clicks
     log_email(uid)
     return redirect(url_for("landing", uid=uid))
 
