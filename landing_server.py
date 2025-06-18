@@ -110,7 +110,6 @@ def generate_report():
         
         fig, ax = plt.subplots(figsize=(4, 4), dpi=100)  # smaller size, higher resolution
         ax.pie(sizes, labels=labels, colors=colors, explode = explode, autopct="%1.1f%%", startangle=90, textprops=dict(color="black", fontsize=12, weight="bold"), wedgeprops=dict(width=0.5))
-        ax.text(0, 0, f"{clicked_count}/{total}", ha='center', va='center', fontsize=14, weight='bold')
         ax.axis("equal")
         
         # Remove padding and tight layout
