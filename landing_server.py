@@ -1,8 +1,8 @@
 from flask import Flask, request, redirect, url_for, render_template_string
-import csv
-import os
 import json
 from datetime import datetime
+import os
+import csv
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -19,30 +19,21 @@ creds_dict = json.loads(creds_json)
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
-# Main user click sheet
-sheet = client.open_by_key(GOOGLE_SHEET_ID).sheet1
-
-# Bot clicks sheet (assumes sheet named exactly "BotClickData" exists)
+# Use the BotClickData sheet for all logs
 bot_sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet("BotClickData")
 
-def is_bot(user_agent):
-    bot_keywords = ["Microsoft", "Defender", "Outlook", "bot", "scanner", "prefetch", "curl", "wget"]
-    return any(bot.lower() in user_agent.lower() for bot in bot_keywords)
-
-def log_email(uid):
+def log_all_clicks(uid, ip, user_agent, headers):
     timestamp = datetime.now().isoformat()
-    row = [uid, timestamp]
+    headers_str = " | ".join(f"{k}: {v}" for k, v in headers.items())
+    row = [uid, timestamp, ip, user_agent, headers_str]
+
+    # Save locally as well for backup
     os.makedirs("logs", exist_ok=True)
     with open(LOG_FILE, "a", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(row)
-    sheet.append_row(row)
 
-def log_bot_click(uid, ip, user_agent, headers):
-    timestamp = datetime.now().isoformat()
-    # Convert headers dict to a simple string for logging
-    headers_str = " | ".join(f"{k}: {v}" for k, v in headers.items())
-    row = [uid, timestamp, ip, user_agent, headers_str]
+    # Append to Google Sheet
     bot_sheet.append_row(row)
 
 @app.route("/track")
@@ -52,10 +43,7 @@ def track():
     ip = request.remote_addr
     headers = dict(request.headers)
 
-    if is_bot(user_agent):
-        log_bot_click(uid, ip, user_agent, headers)
-    else:
-        log_email(uid)
+    log_all_clicks(uid, ip, user_agent, headers)
 
     return redirect(url_for("landing", uid=uid))
 
@@ -64,7 +52,6 @@ def landing():
     uid = request.args.get("uid", "UNKNOWN")
     with open(LANDING_PAGE, "r") as f:
         html = f.read()
-    # Add the hidden UID input to the form (if needed)
     html = html.replace("</form>", f'<input type="hidden" name="uid" value="{uid}"></form>')
     return render_template_string(html)
 
