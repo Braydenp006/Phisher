@@ -50,11 +50,19 @@ def log_email(uid):
 @app.route("/track")
 def track():
     uid = request.args.get("uid", "UNKNOWN")
-    user_agent = request.user_agent.string
+    user_agent = request.user_agent.string.lower()
 
-    if not is_bot(user_agent) and should_log(uid):
-        log_email(uid)
+    bot_indicators = [
+        "microsoft", "defender", "prefetch", "bingpreview",
+        "healthcheck", "outlook", "curl", "wget", "bot"
+    ]
 
+    # If it's a bot or prefetch, skip logging
+    if any(bot in user_agent for bot in bot_indicators):
+        return redirect(url_for("landing", uid=uid))
+
+    # Log unique user clicks
+    log_email(uid)
     return redirect(url_for("landing", uid=uid))
 
 @app.route("/landing")
