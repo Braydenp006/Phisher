@@ -106,19 +106,19 @@ def generate_report():
         labels = ["Clicked", "Did Not Click"]
         sizes = [clicked_count, not_clicked_count]
         colors = ["red", "green"]
-
+        
         fig, ax = plt.subplots()
         ax.pie(sizes, labels=labels, colors=colors, autopct="%1.1f%%", startangle=90)
         ax.axis("equal")
-
-        plt.close(fig)
-
-        # Save to buffer
+        
         buf = io.BytesIO()
-        plt.savefig(buf, format="png")
+        plt.savefig(buf, format="png")  # <- Save before closing
+        plt.close(fig)
+        
         buf.seek(0)
         image_base64 = base64.b64encode(buf.read()).decode("utf-8")
         buf.close()
+
 
         # Hazard Rating
         danger_rating = (clicked_count / total) * 100 if total > 0 else 0
