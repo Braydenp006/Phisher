@@ -105,10 +105,12 @@ def generate_report():
         # Generate pie chart
         labels = ["Clicked", "Did Not Click"]
         sizes = [clicked_count, not_clicked_count]
-        colors = ["red", "green"]
+        colors = ["#ff6b6b", "#4caf50"]
+        explode = [0.05, 0.05]
         
         fig, ax = plt.subplots(figsize=(4, 4), dpi=100)  # smaller size, higher resolution
-        ax.pie(sizes, labels=labels, colors=colors, autopct="%1.1f%%", startangle=90)
+        ax.pie(sizes, labels=labels, colors=colors, explode = explode, autopct="%1.1f%%", startangle=90, textprops=dict(color="black", fontsize=12, weight="bold"), wedgeprops=dict(width=0.5))
+        ax.text(0, 0, f"{clicked_count}/{total}", ha='center', va='center', fontsize=14, weight='bold')
         ax.axis("equal")
         
         # Remove padding and tight layout
@@ -116,7 +118,7 @@ def generate_report():
         
         # Save to buffer with tight bounding box
         buf = io.BytesIO()
-        plt.savefig(buf, format="png", bbox_inches='tight', pad_inches=0, transparent=True)
+        plt.savefig(buf, format="png", bbox_inches='tight', pad_inches=0.1, transparent=True)
         plt.close(fig)
                 
         buf.seek(0)
