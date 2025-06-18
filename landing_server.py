@@ -107,14 +107,18 @@ def generate_report():
         sizes = [clicked_count, not_clicked_count]
         colors = ["red", "green"]
         
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=100)  # smaller size, higher resolution
         ax.pie(sizes, labels=labels, colors=colors, autopct="%1.1f%%", startangle=90)
         ax.axis("equal")
         
-        buf = io.BytesIO()
-        plt.savefig(buf, format="png")  # <- Save before closing
-        plt.close(fig)
+        # Remove padding and tight layout
+        plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
         
+        # Save to buffer with tight bounding box
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png", bbox_inches='tight', pad_inches=0, transparent=True)
+        plt.close(fig)
+                
         buf.seek(0)
         image_base64 = base64.b64encode(buf.read()).decode("utf-8")
         buf.close()
