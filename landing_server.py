@@ -18,32 +18,44 @@ creds_json = os.environ.get("GOOGLE_CREDS")
 creds_dict = json.loads(creds_json)
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
-sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet("Raw Bot Log")
+
+# Main user click sheet
+sheet = client.open_by_key(GOOGLE_SHEET_ID).sheet1
+
+# Bot clicks sheet (assumes sheet named exactly "BotClickData" exists)
+bot_sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet("BotClickData")
 
 def is_bot(user_agent):
     bot_keywords = ["Microsoft", "Defender", "Outlook", "bot", "scanner", "prefetch", "curl", "wget"]
     return any(bot.lower() in user_agent.lower() for bot in bot_keywords)
 
-def log_request_data(uid, ip, user_agent, headers):
+def log_email(uid):
     timestamp = datetime.now().isoformat()
-    header_json = json.dumps(dict(headers))
-    row = [uid, ip, timestamp, user_agent, header_json]
-
+    row = [uid, timestamp]
     os.makedirs("logs", exist_ok=True)
     with open(LOG_FILE, "a", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(row)
-
     sheet.append_row(row)
+
+def log_bot_click(uid, ip, user_agent, headers):
+    timestamp = datetime.now().isoformat()
+    # Convert headers dict to a simple string for logging
+    headers_str = " | ".join(f"{k}: {v}" for k, v in headers.items())
+    row = [uid, timestamp, ip, user_agent, headers_str]
+    bot_sheet.append_row(row)
 
 @app.route("/track")
 def track():
     uid = request.args.get("uid", "UNKNOWN")
     user_agent = request.user_agent.string
     ip = request.remote_addr
-    headers = request.headers
+    headers = dict(request.headers)
 
-    log_request_data(uid, ip, user_agent, headers)
+    if is_bot(user_agent):
+        log_bot_click(uid, ip, user_agent, headers)
+    else:
+        log_email(uid)
 
     return redirect(url_for("landing", uid=uid))
 
@@ -52,6 +64,7 @@ def landing():
     uid = request.args.get("uid", "UNKNOWN")
     with open(LANDING_PAGE, "r") as f:
         html = f.read()
+    # Add the hidden UID input to the form (if needed)
     html = html.replace("</form>", f'<input type="hidden" name="uid" value="{uid}"></form>')
     return render_template_string(html)
 
