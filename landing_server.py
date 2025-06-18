@@ -10,7 +10,7 @@ from collections import defaultdict
 
 app = Flask(__name__)
 
-GOOGLE_SHEET_ID = "1hALSUrXjg_qcru93HeSjlbalYr04sFMtLz6xzGR8nvU"
+GOOGLE_SHEET_ID = os.environ.get("GOOGLE_SHEET_ID")
 LANDING_PAGE = "landing_page.html"
 LOG_FILE = "logs/clicked_users.csv"
 
