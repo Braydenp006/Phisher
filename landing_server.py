@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, url_for, render_template_string, send_file, render_template_string
+from flask import Flask, request, redirect, url_for, render_template, send_file, render_template_string
 import csv
 import os
 import json
@@ -86,11 +86,6 @@ def log_bot_click(info):
     except Exception as e:
         print(f"Error writing to bot sheet: {e}")
 
-import matplotlib.pyplot as plt
-import io
-import base64
-from flask import Flask, send_file, render_template_string
-
 @app.route("/report")
 def generate_report():
     try:
@@ -137,7 +132,14 @@ def generate_report():
         with open(REPORT_PAGE, "r") as f:
             html = f.read()
     
-        return render_template_string(html)
+        return render_template("report.html",
+            total=total,
+            clicked_count=clicked_count,
+            not_clicked_count=not_clicked_count,
+            image_base64=image_base64,
+            status=status,
+        )
+
 
     except Exception as e:
         print(f"Error in /report route: {e}")
