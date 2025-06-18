@@ -35,13 +35,9 @@ def is_bot(request):
         if version < 134:
             return True
 
-    # Check Sec-Ch-Ua header format
+    # Check Sec-Ch-Ua header (still useful for some bots, but don’t block mobile)
     sec_ch_ua = request.headers.get("Sec-Ch-Ua", "")
-    if 'Not;A Brand' in sec_ch_ua or sec_ch_ua.count('"') < 4:
-        return True
-
-    # Suspicious Sec-Fetch-Site
-    if request.headers.get("Sec-Fetch-Site", "") == "none":
+    if 'Not;A Brand' in sec_ch_ua and "Google Chrome" not in sec_ch_ua:
         return True
 
     # IP checks (local/internal)
@@ -49,15 +45,12 @@ def is_bot(request):
     if ip.startswith("127.") or ip.startswith("192.") or ip == "":
         return True
 
-    # Add any more heuristic checks here if needed
-
-    # Basic bot keywords in UA (your original list)
+    # Basic bot keywords in UA
     bot_keywords = ["Microsoft", "Defender", "Outlook", "bot", "scanner", "prefetch", "curl", "wget"]
     if any(bot_kw.lower() in user_agent.lower() for bot_kw in bot_keywords):
         return True
 
     return False
-
 def log_user_click(uid, info):
     # Log locally
     timestamp = datetime.now().isoformat()
