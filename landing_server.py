@@ -1,10 +1,11 @@
 from flask import Flask, request, redirect, url_for, render_template_string
+import csv
+import os
 import json
 from datetime import datetime
-import os
-import csv
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import re
 
 app = Flask(__name__)
 
@@ -19,31 +20,90 @@ creds_dict = json.loads(creds_json)
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
-# Use the BotClickData sheet for all logs
-bot_sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet("BotClickData")
+# Main user clicks sheet
+sheet_user = client.open_by_key(GOOGLE_SHEET_ID).sheet1
+# Bot clicks sheet
+sheet_bot = client.open_by_key(GOOGLE_SHEET_ID).worksheet("BotClickData")
 
-def log_all_clicks(uid, ip, user_agent, headers):
+def is_bot(request):
+    user_agent = request.user_agent.string
+
+    # Check Chrome version from User-Agent
+    match = re.search(r"Chrome/(\d+)", user_agent)
+    if match:
+        version = int(match.group(1))
+        if version < 134:
+            return True
+
+    # Check Sec-Ch-Ua header format
+    sec_ch_ua = request.headers.get("Sec-Ch-Ua", "")
+    if 'Not;A Brand' in sec_ch_ua or sec_ch_ua.count('"') < 4:
+        return True
+
+    # Suspicious Sec-Fetch-Site
+    if request.headers.get("Sec-Fetch-Site", "") == "none":
+        return True
+
+    # IP checks (local/internal)
+    ip = request.headers.get("Cf-Connecting-Ip", "") or request.remote_addr or ""
+    if ip.startswith("127.") or ip.startswith("192.") or ip == "":
+        return True
+
+    # Add any more heuristic checks here if needed
+
+    # Basic bot keywords in UA (your original list)
+    bot_keywords = ["Microsoft", "Defender", "Outlook", "bot", "scanner", "prefetch", "curl", "wget"]
+    if any(bot_kw.lower() in user_agent.lower() for bot_kw in bot_keywords):
+        return True
+
+    return False
+
+def log_user_click(uid, info):
+    # Log locally
     timestamp = datetime.now().isoformat()
-    headers_str = " | ".join(f"{k}: {v}" for k, v in headers.items())
-    row = [uid, timestamp, ip, user_agent, headers_str]
-
-    # Save locally as well for backup
+    row = [uid, timestamp]
     os.makedirs("logs", exist_ok=True)
     with open(LOG_FILE, "a", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(row)
 
-    # Append to Google Sheet
-    bot_sheet.append_row(row)
+    # Append to user clicks sheet
+    try:
+        sheet_user.append_row(row)
+    except Exception as e:
+        print(f"Error writing to user sheet: {e}")
+
+def log_bot_click(uid, info):
+    # Append all bot click info as a row in BotClickData
+    try:
+        sheet_bot.append_row(info)
+    except Exception as e:
+        print(f"Error writing to bot sheet: {e}")
 
 @app.route("/track")
 def track():
     uid = request.args.get("uid", "UNKNOWN")
     user_agent = request.user_agent.string
-    ip = request.remote_addr
-    headers = dict(request.headers)
+    headers = request.headers
 
-    log_all_clicks(uid, ip, user_agent, headers)
+    # Collect detailed info for logging
+    info = [
+        uid,
+        datetime.now().isoformat(),
+        request.remote_addr or "",
+        user_agent,
+        headers.get("Host", ""),
+        headers.get("Cf-Connecting-Ip", ""),
+        headers.get("Cf-Ipcountry", ""),
+        headers.get("Cf-Ray", ""),
+        headers.get("Sec-Ch-Ua", ""),
+        headers.get("Sec-Fetch-Site", ""),
+    ]
+
+    if is_bot(request):
+        log_bot_click(uid, info)
+    else:
+        log_user_click(uid, info)
 
     return redirect(url_for("landing", uid=uid))
 
