@@ -2,16 +2,21 @@ from flask import Flask, request, redirect, url_for, render_template_string
 import csv
 import os
 import json
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-import re
+from collections import defaultdict
 
 app = Flask(__name__)
 
 GOOGLE_SHEET_ID = "1hALSUrXjg_qcru93HeSjlbalYr04sFMtLz6xzGR8nvU"
 LANDING_PAGE = "landing_page.html"
 LOG_FILE = "logs/clicked_users.csv"
+
+# Deduplication setup
+recent_clicks = defaultdict(lambda: datetime.min)
+DEDUPLICATION_WINDOW = timedelta(seconds=3)
 
 # Setup Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -28,46 +33,50 @@ sheet_bot = client.open_by_key(GOOGLE_SHEET_ID).worksheet("BotClickData")
 def is_bot(request):
     user_agent = request.user_agent.string
 
-    # Check Chrome version from User-Agent
+    # Chrome version
     match = re.search(r"Chrome/(\d+)", user_agent)
     if match:
         version = int(match.group(1))
         if version < 134:
             return True
 
-    # Check Sec-Ch-Ua header (still useful for some bots, but don’t block mobile)
+    # Sec-Ch-Ua check
     sec_ch_ua = request.headers.get("Sec-Ch-Ua", "")
     if 'Not;A Brand' in sec_ch_ua and "Google Chrome" not in sec_ch_ua:
         return True
 
-    # IP checks (local/internal)
+    # Local/internal IP check
     ip = request.headers.get("Cf-Connecting-Ip", "") or request.remote_addr or ""
     if ip.startswith("127.") or ip.startswith("192.") or ip == "":
         return True
 
-    # Basic bot keywords in UA
+    # User-Agent keywords
     bot_keywords = ["Microsoft", "Defender", "Outlook", "bot", "scanner", "prefetch", "curl", "wget"]
     if any(bot_kw.lower() in user_agent.lower() for bot_kw in bot_keywords):
         return True
 
     return False
-def log_user_click(uid, info):
-    # Log locally
-    timestamp = datetime.now().isoformat()
+
+def log_user_click(uid):
+    now = datetime.now()
+    if now - recent_clicks[uid] < DEDUPLICATION_WINDOW:
+        return  # Skip duplicate click
+    recent_clicks[uid] = now
+
+    timestamp = now.isoformat()
     row = [uid, timestamp]
+
     os.makedirs("logs", exist_ok=True)
     with open(LOG_FILE, "a", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(row)
 
-    # Append to user clicks sheet
     try:
         sheet_user.append_row(row)
     except Exception as e:
         print(f"Error writing to user sheet: {e}")
 
-def log_bot_click(uid, info):
-    # Append all bot click info as a row in BotClickData
+def log_bot_click(info):
     try:
         sheet_bot.append_row(info)
     except Exception as e:
@@ -79,7 +88,6 @@ def track():
     user_agent = request.user_agent.string
     headers = request.headers
 
-    # Collect detailed info for logging
     info = [
         uid,
         datetime.now().isoformat(),
@@ -94,9 +102,9 @@ def track():
     ]
 
     if is_bot(request):
-        log_bot_click(uid, info)
+        log_bot_click(info)
     else:
-        log_user_click(uid, info)
+        log_user_click(uid)
 
     return redirect(url_for("landing", uid=uid))
 
