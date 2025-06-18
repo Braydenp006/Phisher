@@ -91,59 +91,58 @@ def generate_report():
     try:
         sheet1 = client.open_by_key(GOOGLE_SHEET_ID).worksheet("Sheet1")
         sheet3 = client.open_by_key(GOOGLE_SHEET_ID).worksheet("Sheet3")
-    
+
         clicked_emails = set(row[0].strip().lower() for row in sheet1.get_all_values()[1:])
         all_employees = set(row[0].strip().lower() for row in sheet3.get_all_values()[1:])
-    
+
         clicked = clicked_emails & all_employees
         not_clicked = all_employees - clicked_emails
-    
+
         total = len(all_employees)
         clicked_count = len(clicked)
         not_clicked_count = len(not_clicked)
-    
+
         # Generate pie chart
         labels = ["Clicked", "Did Not Click"]
         sizes = [clicked_count, not_clicked_count]
         colors = ["red", "green"]
-    
+
         fig, ax = plt.subplots()
         ax.pie(sizes, labels=labels, colors=colors, autopct="%1.1f%%", startangle=90)
         ax.axis("equal")
-    
+
         plt.close(fig)
-        
+
         # Save to buffer
         buf = io.BytesIO()
         plt.savefig(buf, format="png")
         buf.seek(0)
         image_base64 = base64.b64encode(buf.read()).decode("utf-8")
         buf.close()
-    
+
         # Hazard Rating
-        danger_rating = (clicked_count / total) * 100
+        danger_rating = (clicked_count / total) * 100 if total > 0 else 0
         if danger_rating > 50:
             status = "🚨 HIGH RISK"
         elif danger_rating > 25:
             status = "⚠️ MEDIUM RISK"
         else:
             status = "✅ LOW RISK"
-    
-        with open(REPORT_PAGE, "r") as f:
-            html = f.read()
-    
-        return render_template("report.html",
+
+        # Just return the rendered template
+        return render_template(
+            "report.html",
             total=total,
             clicked_count=clicked_count,
             not_clicked_count=not_clicked_count,
             image_base64=image_base64,
-            status=status,
+            status=status
         )
-
 
     except Exception as e:
         print(f"Error in /report route: {e}")
-        return f"an error occurred: {e}", 500
+        return f"An error occurred: {e}", 500
+
 
 @app.route("/track")
 def track():
