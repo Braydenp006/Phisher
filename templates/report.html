@@ -154,6 +154,11 @@
           {% for user in clicked_users %}
             <li>{{ user }}</li>
           {% endfor %}
+          <a href="/download_clicked" download>
+            <button style="margin-top: 10px; padding: 10px 20px; font-weight: bold; background-color: #007c41; color: white; border: none; border-radius: 8px; cursor: pointer;">
+              Download Clicked Users (CSV)
+            </button>
+          </a>
         </ul>
       </div>
 
