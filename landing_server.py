@@ -167,7 +167,7 @@ def generate_report():
                wedgeprops=dict(width=0.5))
         ax.axis("equal")
         ax.text(0, 1.2, f"{clicked_count/total: .1%} Clicked", ha="center", va="center", fontsize=14, weight="bold", color="#000000")
-        ax.text(0, -1.2, f"{not_clicked_count/total: .1%} Clicked", ha="center", va="center", fontsize=14, weight="bold", color="#000000")
+        ax.text(0, -1.2, f"{not_clicked_count/total: .1%} Didn't Click", ha="center", va="center", fontsize=14, weight="bold", color="#000000")
 
         plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
         buf = io.BytesIO()
