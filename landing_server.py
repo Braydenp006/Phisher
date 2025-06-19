@@ -93,6 +93,48 @@ def log_bot_click(info):
     except Exception as e:
         print(f"Error writing to bot sheet: {e}")
 
+
+@app.route("/download_clicked")
+def download_clicked():
+    try:
+        sheet1 = client.open_by_key(GOOGLE_SHEET_ID).worksheet("Sheet1")
+        sheet3 = client.open_by_key(GOOGLE_SHEET_ID).worksheet("Sheet3")
+
+        clicked_emails = set(row[0].strip().lower() for row in sheet1.get_all_values()[1:])
+        all_employees = set(row[0].strip().lower() for row in sheet3.get_all_values()[1:])
+        clicked = clicked_emails & all_employees
+
+        # Convert emails to names
+        def email_to_name(email):
+            name_part = email.split("@")[0]
+            if "." in name_part:
+                first, last = name_part.split(".", 1)
+                return f"{first.capitalize()} {last.capitalize()}"
+            return email
+
+        clicked_names = sorted(email_to_name(email) for email in clicked)
+
+        # Write names to a CSV in memory
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Name"])
+        for name in clicked_names:
+            writer.writerow([name])
+
+        mem = io.BytesIO()
+        mem.write(output.getvalue().encode("utf-8"))
+        mem.seek(0)
+        output.close()
+
+        return send_file(
+            mem,
+            as_attachment=True,
+            download_name="clicked_users.csv",
+            mimetype="text/csv"
+        )
+    except Exception as e:
+        return f"An error occurred while generating the CSV: {e}", 500
+
 @app.route("/report")
 def generate_report():
     try:
