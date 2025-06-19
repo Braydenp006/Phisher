@@ -27,6 +27,12 @@
       box-shadow: 0 8px 16px rgba(0,0,0,0.12);
       text-align: center;
       margin-top: 40px;
+      transition: max-width 0.5s ease;
+    }
+
+    /* Expanded container for extra stats */
+    .container.expanded {
+      max-width: 1200px;
     }
 
     h1 {
@@ -96,10 +102,50 @@
     }
     .grid-container {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 20px;
       justify-items: center;
+      margin-top: 30px;
+      transition: opacity 0.5s ease, grid-template-columns 0.3s ease;
+      opacity: 0;
     }
+
+    /* Force 6 columns when expanded */
+    .grid-container.six-columns {
+      grid-template-columns: repeat(6, 1fr) !important;
+    }
+
+    /* Show grid when visible */
+    .grid-container.visible {
+      opacity: 1;
+    }
+
+    /* Animate extra stats expansion */
+    #extra-stats {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.6s ease, opacity 0.6s ease;
+    }
+    #extra-stats.show {
+      max-height: 1000px; /* enough to show content */
+      opacity: 1;
+    }
+
+    /* Animate clicked list expansion */
+    #clickedList {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease, opacity 0.5s ease;
+      margin-top: 20px;
+      text-align: left;
+    }
+    #clickedList.show {
+      max-height: 800px; /* enough to show content */
+      opacity: 1;
+    }
+
     @media (max-width: 1200px) {
       .grid-container {
         grid-template-columns: repeat(4, 1fr);
@@ -119,20 +165,18 @@
     }
 
     .chart-card {
-      background: #ffffff;
-      border: 1px solid #007c41;
-      border-radius: 12px;
+      background-color: #f9f9f9;
+      border-radius: 10px;
       padding: 12px;
-      width: 180px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       text-align: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 150px;
     }
     
     .chart-card img {
-      max-width: 100%;
+      width: 100%;
       height: auto;
     }
-
     @media (max-width: 600px) {
       .container {
         padding: 20px;
@@ -186,8 +230,7 @@
         Show Clickers
       </button>
 
-    
-      <div id="clickedList" style="display: none; margin-top: 20px; text-align: left;">
+      <div id="clickedList">
         <h3 style="color: #b00000;">Users Who Clicked</h3>
         <ul style="list-style-type: disc; padding-left: 20px; color: #333;">
           {% for user in clicked_users %}
@@ -200,37 +243,46 @@
           </a>
         </ul>
       </div>
-        <button onclick="toggleExtraStats()" style="margin-top: 30px; padding: 10px 20px; font-size: 16px; background-color: #007c41; color: white; border: none; border-radius: 6px; cursor: pointer;">
-          Extra Stats
-        </button>
-        
-        <div id="extra-stats" style="display: none; margin-top: 30px;">
-          <h2 style="text-align: center; color: #007c41;">Department Click Breakdown</h2>
-          <div class="grid-container">
-            {% for dept, chart in department_charts.items() %}
-            <div class="chart-card">
-              <h3>{{ dept }}</h3>
-              <img src="data:image/png;base64,{{ chart }}" alt="Chart for {{ dept }}" />
-            </div>
-            {% endfor %}
+      
+      <button onclick="toggleExtraStats()" style="margin-top: 30px; padding: 10px 20px; font-size: 16px; background-color: #007c41; color: white; border: none; border-radius: 6px; cursor: pointer;">
+        Extra Stats
+      </button>
+      
+      <div id="extra-stats">
+        <h2 style="text-align: center; color: #007c41;">Department Breakdown</h2>
+        <div class="grid-container">
+          {% for dept, chart in department_charts.items() %}
+          <div class="chart-card">
+            <h3>{{ dept }}</h3>
+            <img src="data:image/png;base64,{{ chart }}" alt="Chart for {{ dept }}" />
           </div>
+          {% endfor %}
         </div>
-        
-        <script>
-          function toggleExtraStats() {
-            const stats = document.getElementById("extra-stats");
-            stats.style.display = stats.style.display === "none" ? "block" : "none";
+      </div>
+      
+      <script>
+        function toggleExtraStats() {
+          const stats = document.getElementById("extra-stats");
+          const container = document.querySelector(".container");
+          const grid = stats.querySelector(".grid-container");
+
+          if (!stats.classList.contains("show")) {
+            stats.classList.add("show");
+            grid.classList.add("visible", "six-columns");
+            container.classList.add("expanded");
+          } else {
+            stats.classList.remove("show");
+            grid.classList.remove("visible", "six-columns");
+            container.classList.remove("expanded");
           }
-        </script>
+        }
 
-        
-          </div>
-            <script>
-            function toggleClickedList() {
-              const list = document.getElementById("clickedList");
-              list.style.display = list.style.display === "none" ? "block" : "none";
-            }
-            </script>
+        function toggleClickedList() {
+          const list = document.getElementById("clickedList");
+          list.classList.toggle("show");
+        }
+      </script>
 
+  </div>
 </body>
 </html>
