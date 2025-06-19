@@ -136,7 +136,6 @@ def download_clicked():
         return f"An error occurred while generating the CSV: {e}", 500
 
 @app.route("/report")
-@app.route("/report")
 def generate_report():
     try:
         sheet1 = client.open_by_key(GOOGLE_SHEET_ID).worksheet("Sheet1")
@@ -203,7 +202,6 @@ def generate_report():
             not_clicked_val = stats["total"] - clicked_val
             fig, ax = plt.subplots(figsize=(3, 3), dpi=100)
             ax.pie([clicked_val, not_clicked_val],
-                   labels=[f"Clicked ({clicked_val})", f"Did Not Click ({not_clicked_val})"],
                    colors=["#f9844a", "#90be6d"], explode=[0.05, 0.05], startangle=90,
                    autopct='%1.1f%%', textprops={'fontsize': 10, 'color': 'black'})
             ax.set_title(dept, fontsize=11)
