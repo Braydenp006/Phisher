@@ -234,7 +234,6 @@ def generate_report():
         )
 
     except Exception as e:
-        traceback.print_exc()
         print(f"Error in /report route: {e}")
         return f"An error occurred: {e}", 500
 
