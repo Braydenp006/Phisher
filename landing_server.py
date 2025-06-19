@@ -142,6 +142,7 @@ def generate_report():
             not_clicked_count=not_clicked_count,
             image_base64=image_base64,
             status=status
+            clicked_users=sorted(clicked)
         )
 
     except Exception as e:
