@@ -141,7 +141,7 @@ def generate_report():
             clicked_count=clicked_count,
             not_clicked_count=not_clicked_count,
             image_base64=image_base64,
-            status=status
+            status=status,
             clicked_users=sorted(clicked)
         )
 
