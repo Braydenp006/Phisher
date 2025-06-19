@@ -134,7 +134,36 @@
     </div>
 
     <h2 class="status">{{ status }}</h2>
-    
+      <button onclick="toggleClickedList()" style="
+        margin-top: 20px;
+        padding: 10px 16px;
+        font-size: 14px;
+        background-color: #007c41;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      ">
+        Show Clicked Users
+      </button>
+      
+      <div id="clickedList" style="display: none; margin-top: 20px; text-align: left;">
+        <h3 style="color: #b00000;">Users Who Clicked</h3>
+        <ul style="list-style-type: disc; padding-left: 20px; color: #333;">
+          {% for user in clicked_users %}
+            <li>{{ user }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
   </div>
+    <script>
+    function toggleClickedList() {
+      const list = document.getElementById("clickedList");
+      list.style.display = list.style.display === "none" ? "block" : "none";
+    }
+    </script>
+
 </body>
 </html>
