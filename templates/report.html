@@ -30,7 +30,6 @@
       transition: max-width 0.5s ease;
     }
 
-    /* Expanded container for extra stats */
     .container.expanded {
       max-width: 1200px;
     }
@@ -92,6 +91,7 @@
       box-shadow: 0 4px 20px rgba(0, 124, 65, 0.2);
       max-width: 350px;
     }
+
     .footer-note {
       margin-top: 40px;
       font-size: 12px;
@@ -100,9 +100,10 @@
       padding-top: 12px;
       font-style: italic;
     }
+
     .grid-container {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 20px;
       justify-items: center;
       margin-top: 30px;
@@ -110,17 +111,14 @@
       opacity: 0;
     }
 
-    /* Force 6 columns when expanded */
     .grid-container.six-columns {
       grid-template-columns: repeat(6, 1fr) !important;
     }
 
-    /* Show grid when visible */
     .grid-container.visible {
       opacity: 1;
     }
 
-    /* Animate extra stats expansion */
     #extra-stats {
       max-height: 0;
       opacity: 0;
@@ -128,11 +126,10 @@
       transition: max-height 0.6s ease, opacity 0.6s ease;
     }
     #extra-stats.show {
-      max-height: 1000px; /* enough to show content */
+      max-height: 1000px;
       opacity: 1;
     }
 
-    /* Animate clicked list expansion */
     #clickedList {
       max-height: 0;
       opacity: 0;
@@ -142,25 +139,13 @@
       text-align: left;
     }
     #clickedList.show {
-      max-height: 800px; /* enough to show content */
+      max-height: 800px;
       opacity: 1;
     }
 
-    @media (max-width: 1200px) {
-      .grid-container {
-        grid-template-columns: repeat(4, 1fr);
-      }
-    }
-    
-    @media (max-width: 900px) {
-      .grid-container {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-    
     @media (max-width: 600px) {
       .grid-container {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr) !important;
       }
     }
 
@@ -172,25 +157,10 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       width: 150px;
     }
-    
+
     .chart-card img {
       width: 100%;
       height: auto;
-    }
-    @media (max-width: 600px) {
-      .container {
-        padding: 20px;
-        margin-top: 20px;
-      }
-
-      h1 {
-        font-size: 24px;
-      }
-
-      .stat-block {
-        font-size: 16px;
-        padding: 12px 8px;
-      }
     }
   </style>
 </head>
@@ -216,73 +186,78 @@
     </div>
 
     <h2 class="status">{{ status }}</h2>
-      <button onclick="toggleClickedList()" style="
-        margin-top: 20px;
-        padding: 10px 16px;
-        font-size: 14px;
-        background-color: #007c41;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: bold;
-      ">
-        Show Clickers
-      </button>
+    <button onclick="toggleClickedList()" style="margin-top: 20px; padding: 10px 16px; font-size: 14px; background-color: #007c41; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+      Show Clickers
+    </button>
 
-      <div id="clickedList">
-        <h3 style="color: #b00000;">Users Who Clicked</h3>
-        <ul style="list-style-type: disc; padding-left: 20px; color: #333;">
-          {% for user in clicked_users %}
-            <li>{{ user }}</li>
-          {% endfor %}
-          <a href="/download_clicked" download>
-            <button style="margin-top: 10px; padding: 10px 20px; font-weight: bold; background-color: #007c41; color: white; border: none; border-radius: 8px; cursor: pointer;">
-              Download Clicked Users (CSV)
-            </button>
-          </a>
-        </ul>
-      </div>
-      
-      <button onclick="toggleExtraStats()" style="margin-top: 30px; padding: 10px 20px; font-size: 16px; background-color: #007c41; color: white; border: none; border-radius: 6px; cursor: pointer;">
-        Extra Stats
-      </button>
-      
-      <div id="extra-stats">
-        <h2 style="text-align: center; color: #007c41;">Department Breakdown</h2>
-        <div class="grid-container">
-          {% for dept, chart in department_charts.items() %}
-          <div class="chart-card">
-            <h3>{{ dept }}</h3>
-            <img src="data:image/png;base64,{{ chart }}" alt="Chart for {{ dept }}" />
-          </div>
-          {% endfor %}
+    <div id="clickedList">
+      <h3 style="color: #b00000;">Users Who Clicked</h3>
+      <select id="departmentFilter" onchange="filterClickersByDepartment()" style="margin-bottom: 10px;">
+        <option value="">All Departments</option>
+        {% for dept in departments %}
+        <option value="{{ dept }}">{{ dept }}</option>
+        {% endfor %}
+      </select>
+      <ul id="clickedUsersList" style="list-style-type: disc; padding-left: 20px; color: #333;">
+        {% for user, dept in clicked_users_with_dept %}
+        <li data-department="{{ dept }}">{{ user }} - <em>{{ dept }}</em></li>
+        {% endfor %}
+      </ul>
+      <a href="/download_clicked" download>
+        <button style="margin-top: 10px; padding: 10px 20px; font-weight: bold; background-color: #007c41; color: white; border: none; border-radius: 8px; cursor: pointer;">
+          Download Clicked Users (CSV)
+        </button>
+      </a>
+    </div>
+
+    <button onclick="toggleExtraStats()" style="margin-top: 30px; padding: 10px 20px; font-size: 16px; background-color: #007c41; color: white; border: none; border-radius: 6px; cursor: pointer;">
+      Extra Stats
+    </button>
+
+    <div id="extra-stats">
+      <h2 style="text-align: center; color: #007c41;">Department Click Breakdown</h2>
+      <div class="grid-container">
+        {% for dept, chart in department_charts.items() %}
+        <div class="chart-card">
+          <h3>{{ dept }}</h3>
+          <img src="data:image/png;base64,{{ chart }}" alt="Chart for {{ dept }}" />
         </div>
+        {% endfor %}
       </div>
-      
-      <script>
-        function toggleExtraStats() {
-          const stats = document.getElementById("extra-stats");
-          const container = document.querySelector(".container");
-          const grid = stats.querySelector(".grid-container");
+    </div>
 
-          if (!stats.classList.contains("show")) {
-            stats.classList.add("show");
-            grid.classList.add("visible", "six-columns");
-            container.classList.add("expanded");
-          } else {
-            stats.classList.remove("show");
-            grid.classList.remove("visible", "six-columns");
-            container.classList.remove("expanded");
-          }
+    <script>
+      function toggleExtraStats() {
+        const stats = document.getElementById("extra-stats");
+        const container = document.querySelector(".container");
+        const grid = stats.querySelector(".grid-container");
+
+        if (!stats.classList.contains("show")) {
+          stats.classList.add("show");
+          grid.classList.add("visible", "six-columns");
+          container.classList.add("expanded");
+        } else {
+          stats.classList.remove("show");
+          grid.classList.remove("visible", "six-columns");
+          container.classList.remove("expanded");
         }
+      }
 
-        function toggleClickedList() {
-          const list = document.getElementById("clickedList");
-          list.classList.toggle("show");
-        }
-      </script>
+      function toggleClickedList() {
+        const list = document.getElementById("clickedList");
+        list.classList.toggle("show");
+      }
 
+      function filterClickersByDepartment() {
+        const filter = document.getElementById("departmentFilter").value;
+        const listItems = document.querySelectorAll("#clickedUsersList li");
+
+        listItems.forEach(item => {
+          const dept = item.getAttribute("data-department");
+          item.style.display = !filter || dept === filter ? "list-item" : "none";
+        });
+      }
+    </script>
   </div>
 </body>
 </html>
