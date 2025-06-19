@@ -103,15 +103,15 @@ def generate_report():
         not_clicked_count = len(not_clicked)
 
         # Generate pie chart
-        labels = [f"Clicked {clicked_count/total: .1%}", f"Did Not Click {not_clicked_count/total: .1%}"]
         sizes = [clicked_count, not_clicked_count]
         colors = ["#ff6b6b", "#4caf50"]
         explode = [0.05, 0.05]
         
         fig, ax = plt.subplots(figsize=(4, 4), dpi=100)  # smaller size, higher resolution
-        ax.pie(sizes, labels=labels, colors=colors, explode = explode, startangle=90, textprops=dict(color="black", fontsize=12, weight="bold"), wedgeprops=dict(width=0.5))
+        ax.pie(sizes, colors=colors, explode = explode, startangle=90, textprops=dict(color="black", fontsize=12, weight="bold"), wedgeprops=dict(width=0.5))
         ax.axis("equal")
-        
+        ax.text(0, 0.2, f"{clicked_count/total: .1%} Clicked", ha="center", va="center", fontsize=14, weight="bold", color="#b00000")
+        ax.text(0, -0.2, f"{not_clicked_count/total: .1%} Clicked", ha="center", va="center", fontsize=14, weight="bold", color="#b00000")
         # Remove padding and tight layout
         plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
         
