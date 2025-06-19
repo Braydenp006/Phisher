@@ -34,6 +34,7 @@ with open("recipients.csv", newline="") as csvfile:
         msg["Subject"] = "Important: Payroll Discrepancy Notification"
         msg["From"] = FROM_ADDRESS
         msg["To"] = recipient_email
+        msg["X-MS-Exchange-Organization-PhishSimulation"] = "true"
 
         part = MIMEText(personalized_html, "html")
         msg.attach(part)
