@@ -109,6 +109,7 @@
       margin-top: 30px;
       transition: opacity 0.5s ease, grid-template-columns 0.3s ease;
       opacity: 0;
+      max-height: none;
     }
 
     .grid-container.six-columns {
@@ -139,7 +140,6 @@
       text-align: left;
     }
     #clickedList.show {
-      max-height: none;
       opacity: 1;
     }
 
@@ -157,11 +157,13 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       width: 150px;
       margin-bottom: 20px;
+      max-height: none;
     }
 
     .chart-card img {
       width: 100%;
       height: auto;
+      max-height: none;
     }
   </style>
 </head>
@@ -246,7 +248,16 @@
 
       function toggleClickedList() {
         const list = document.getElementById("clickedList");
-        list.classList.toggle("show");
+
+        if (!list.classList.contains("show")) {
+          list.style.maxHeight = list.scrollHeight + "px";
+          list.style.opacity = "1";
+          list.classList.add("show");
+        } else {
+          list.style.maxHeight = "0";
+          list.style.opacity = "0";
+          list.classList.remove("show");
+        }
       }
 
       function filterClickersByDepartment() {
