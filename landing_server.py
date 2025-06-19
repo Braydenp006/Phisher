@@ -103,7 +103,7 @@ def generate_report():
         not_clicked_count = len(not_clicked)
 
         # Generate pie chart
-        labels = ["Clicked", "Did Not Click"]
+        labels = [f"Clicked {clicked_count/total: .1%}", f"Did Not Click {not_clicked_count/total: .1%}"]
         sizes = [clicked_count, not_clicked_count]
         colors = ["#ff6b6b", "#4caf50"]
         explode = [0.05, 0.05]
