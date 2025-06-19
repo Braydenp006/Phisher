@@ -202,9 +202,8 @@ def generate_report():
             not_clicked_val = stats["total"] - clicked_val
             fig, ax = plt.subplots(figsize=(3, 3), dpi=100)
             ax.pie([clicked_val, not_clicked_val],
-                   colors=["#f9844a", "#90be6d"], explode=[0.05, 0.05], startangle=90,
+                   colors=["#ff6b6b", "#4caf50"], explode=[0.05, 0.05], startangle=90,
                    autopct='%1.1f%%', textprops={'fontsize': 10, 'color': 'black'})
-            ax.set_title(dept, fontsize=11)
             ax.axis("equal")
             buf = io.BytesIO()
             plt.savefig(buf, format="png", bbox_inches='tight', transparent=True)
