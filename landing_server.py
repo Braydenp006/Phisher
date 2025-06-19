@@ -213,7 +213,16 @@ def generate_report():
             buf.seek(0)
             department_charts[dept] = base64.b64encode(buf.read()).decode("utf-8")
             plt.close(fig)
-
+        
+        # Prepare clicked users with department for sorting/filtering
+        clicked_users_with_dept = sorted(
+            [(email_to_name(email), email_to_dept.get(email, "Unknown")) for email in clicked],
+            key=lambda x: x[1]  # sort by department
+        )
+        
+        # List of all departments
+        departments = sorted(set(email_to_dept.get(email, "Unknown") for email in clicked))
+        
         return render_template(
             "report.html",
             total=total,
@@ -222,7 +231,9 @@ def generate_report():
             image_base64=image_base64,
             status=status,
             clicked_users=clicked_names,
-            department_charts=department_charts
+            department_charts=department_charts,
+            clicked_users_with_dept=clicked_users_with_dept,
+            departments=departments
         )
 
     except Exception as e:
