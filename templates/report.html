@@ -147,7 +147,8 @@
       ">
         Show Clickers
       </button>
-      
+
+    
       <div id="clickedList" style="display: none; margin-top: 20px; text-align: left;">
         <h3 style="color: #b00000;">Users Who Clicked</h3>
         <ul style="list-style-type: disc; padding-left: 20px; color: #333;">
@@ -161,14 +162,33 @@
           </a>
         </ul>
       </div>
-
-  </div>
-    <script>
-    function toggleClickedList() {
-      const list = document.getElementById("clickedList");
-      list.style.display = list.style.display === "none" ? "block" : "none";
-    }
-    </script>
+       <button onclick="toggleExtraStats()" style="margin-top: 20px; padding: 10px 16px; border: none; background-color: #007c41; color: white; border-radius: 8px; cursor: pointer;">
+          📊 Extra Stats by Department
+        </button>
+        
+        <div id="extraStats" style="display: none; margin-top: 20px;">
+          {% for dept, chart in department_charts.items() %}
+            <div style="margin-bottom: 40px;">
+              <h3>{{ dept }}</h3>
+              <img src="data:image/png;base64,{{ chart }}" alt="{{ dept }} Chart" style="max-width: 300px;" />
+            </div>
+          {% endfor %}
+        </div>
+        
+        <script>
+          function toggleExtraStats() {
+            const stats = document.getElementById("extraStats");
+            stats.style.display = stats.style.display === "none" ? "block" : "none";
+          }
+        </script>
+        
+          </div>
+            <script>
+            function toggleClickedList() {
+              const list = document.getElementById("clickedList");
+              list.style.display = list.style.display === "none" ? "block" : "none";
+            }
+            </script>
 
 </body>
 </html>
