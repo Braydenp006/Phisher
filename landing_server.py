@@ -136,18 +136,22 @@ def download_clicked():
         return f"An error occurred while generating the CSV: {e}", 500
 
 @app.route("/report")
+@app.route("/report")
 def generate_report():
     try:
         sheet1 = client.open_by_key(GOOGLE_SHEET_ID).worksheet("Sheet1")
         sheet3 = client.open_by_key(GOOGLE_SHEET_ID).worksheet("Sheet3")
 
         clicked_emails = set(row[0].strip().lower() for row in sheet1.get_all_values()[1:])
-        all_employees = set(row[0].strip().lower() for row in sheet3.get_all_values()[1:])
+        all_employees_data = sheet3.get_all_values()[1:]
+
+        all_employees = set(row[0].strip().lower() for row in all_employees_data)
+        email_to_dept = {row[0].strip().lower(): row[1].strip() if len(row) > 1 else "Unknown" for row in all_employees_data}
 
         clicked = clicked_emails & all_employees
         not_clicked = all_employees - clicked_emails
         clicked_names = sorted(email_to_name(email) for email in clicked)
-        
+
         total = len(all_employees)
         clicked_count = len(clicked)
         not_clicked_count = len(not_clicked)
@@ -156,24 +160,22 @@ def generate_report():
         sizes = [clicked_count, not_clicked_count]
         colors = ["#ff6b6b", "#4caf50"]
         explode = [0.05, 0.05]
-        
-        fig, ax = plt.subplots(figsize=(4, 4), dpi=100)  # smaller size, higher resolution
-        ax.pie(sizes, colors=colors, explode = explode, startangle=90, textprops=dict(color="black", fontsize=12, weight="bold"), wedgeprops=dict(width=0.5))
+
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=100)
+        ax.pie(sizes, colors=colors, explode=explode, startangle=90,
+               textprops=dict(color="black", fontsize=12, weight="bold"),
+               wedgeprops=dict(width=0.5))
         ax.axis("equal")
         ax.text(0, 1.2, f"{clicked_count/total: .1%} Clicked", ha="center", va="center", fontsize=14, weight="bold", color="#000000")
         ax.text(0, -1.2, f"{not_clicked_count/total: .1%} Clicked", ha="center", va="center", fontsize=14, weight="bold", color="#000000")
-        # Remove padding and tight layout
+
         plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-        
-        # Save to buffer with tight bounding box
         buf = io.BytesIO()
         plt.savefig(buf, format="png", bbox_inches='tight', pad_inches=0.1, transparent=True)
         plt.close(fig)
-                
         buf.seek(0)
         image_base64 = base64.b64encode(buf.read()).decode("utf-8")
         buf.close()
-
 
         # Hazard Rating
         danger_rating = (clicked_count / total) * 100 if total > 0 else 0
@@ -184,7 +186,34 @@ def generate_report():
         else:
             status = "✅ LOW RISK"
 
-        # Just return the rendered template
+        # Generate department pie charts
+        department_stats = {}
+        for email in all_employees:
+            dept = email_to_dept.get(email, "Unknown")
+            department_stats.setdefault(dept, {"clicked": 0, "total": 0})
+            department_stats[dept]["total"] += 1
+            if email in clicked:
+                department_stats[dept]["clicked"] += 1
+
+        department_charts = {}
+        for dept, stats in department_stats.items():
+            if stats["total"] == 0:
+                continue
+            clicked_val = stats["clicked"]
+            not_clicked_val = stats["total"] - clicked_val
+            fig, ax = plt.subplots(figsize=(3, 3), dpi=100)
+            ax.pie([clicked_val, not_clicked_val],
+                   labels=[f"Clicked ({clicked_val})", f"Did Not Click ({not_clicked_val})"],
+                   colors=["#f9844a", "#90be6d"], explode=[0.05, 0.05], startangle=90,
+                   autopct='%1.1f%%', textprops={'fontsize': 10, 'color': 'black'})
+            ax.set_title(dept, fontsize=11)
+            ax.axis("equal")
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", bbox_inches='tight', transparent=True)
+            buf.seek(0)
+            department_charts[dept] = base64.b64encode(buf.read()).decode("utf-8")
+            plt.close(fig)
+
         return render_template(
             "report.html",
             total=total,
@@ -192,14 +221,14 @@ def generate_report():
             not_clicked_count=not_clicked_count,
             image_base64=image_base64,
             status=status,
-            clicked_users=clicked_names
+            clicked_users=clicked_names,
+            department_charts=department_charts
         )
 
     except Exception as e:
         traceback.print_exc()
         print(f"Error in /report route: {e}")
         return f"An error occurred: {e}", 500
-
 
 @app.route("/track")
 def track():
