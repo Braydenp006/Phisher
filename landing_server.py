@@ -34,6 +34,13 @@ sheet_user = client.open_by_key(GOOGLE_SHEET_ID).sheet1
 # Bot clicks sheet
 sheet_bot = client.open_by_key(GOOGLE_SHEET_ID).worksheet("BotClickData")
 
+def email_to_name(email):
+    name_part = email.split("@")[0]
+    if "." in name_part:
+        first, last = name_part.split(".", 1)
+        return f"{first.capitalize()} {last.capitalize()}"
+    return email  # fallback for unexpected formats
+    
 def is_bot(request):
     user_agent = request.user_agent.string
 
@@ -97,7 +104,8 @@ def generate_report():
 
         clicked = clicked_emails & all_employees
         not_clicked = all_employees - clicked_emails
-
+        clicked_names = sorted(email_to_name(email) for email in clicked)
+        
         total = len(all_employees)
         clicked_count = len(clicked)
         not_clicked_count = len(not_clicked)
@@ -142,7 +150,7 @@ def generate_report():
             not_clicked_count=not_clicked_count,
             image_base64=image_base64,
             status=status,
-            clicked_users=sorted(clicked)
+            clicked_users=clicked_names
         )
 
     except Exception as e:
