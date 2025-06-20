@@ -17,6 +17,8 @@ GOOGLE_SHEET_ID = os.environ.get("GOOGLE_SHEET_ID")
 LANDING_PAGE = "landing_page.html"
 REPORT_PAGE = "report.html"
 LOG_FILE = "logs/clicked_users.csv"
+UTH_USERNAME = os.environ.get("AUTH_USERNAME")
+AUTH_PASSWORD = os.environ.get("AUTH_PASSWORD")
 
 # Deduplication setup
 recent_clicks = defaultdict(lambda: datetime.min)
@@ -67,7 +69,24 @@ def is_bot(request):
         return True
 
     return False
+def check_auth(username, password):
+    return username == AUTH_USERNAME and password == AUTH_PASSWORD
 
+def authenticate():
+    return Response(
+        "Authentication required", 401,
+        {"WWW-Authenticate": 'Basic realm="Login Required"'}
+    )
+
+def require_auth_route(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return func(*args, **kwargs)
+    return wrapper
+    
 def log_user_click(uid):
     now = datetime.now()
     if now - recent_clicks[uid] < DEDUPLICATION_WINDOW:
@@ -136,6 +155,7 @@ def download_clicked():
         return f"An error occurred while generating the CSV: {e}", 500
 
 @app.route("/report")
+@require_auth_route
 def generate_report():
     try:
         sheet1 = client.open_by_key(GOOGLE_SHEET_ID).worksheet("Sheet1")
