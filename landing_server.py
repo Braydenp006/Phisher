@@ -18,7 +18,7 @@ GOOGLE_SHEET_ID = os.environ.get("GOOGLE_SHEET_ID")
 LANDING_PAGE = "landing_page.html"
 REPORT_PAGE = "report.html"
 LOG_FILE = "logs/clicked_users.csv"
-UTH_USERNAME = os.environ.get("AUTH_USERNAME")
+AUTH_USERNAME = os.environ.get("AUTH_USERNAME")
 AUTH_PASSWORD = os.environ.get("AUTH_PASSWORD")
 
 # Deduplication setup
