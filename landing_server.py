@@ -283,7 +283,11 @@ def track():
         log_user_click(uid)
 
     return redirect(url_for("landing", uid=uid))
-
+    
+@app.route("/ping")
+def ping():
+    return "pong", 200
+    
 @app.route("/landing")
 def landing():
     uid = request.args.get("uid", "UNKNOWN")
