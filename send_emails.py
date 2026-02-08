@@ -8,14 +8,14 @@ from email.mime.text import MIMEText
 
 def generate_tracking_link(email):
     encoded_email = urllib.parse.quote(email)
-    return f"https://verify.newleafpayroll.ca/track?uid={encoded_email}"
+    return f""
 
-SMTP_SERVER = "smtp.sendgrid.net"
-SMTP_PORT = 587
-SMTP_USER = "apikey"  # DO NOT CHANGE
+SMTP_SERVER = ""
+SMTP_PORT = 
+SMTP_USER = "apikey"
 SMTP_PASSWORD = os.environ.get("SENDGRID_KEY")
-FROM_ADDRESS = "payroll@newleafpayroll.ca"
-TRACKING_BASE_URL = "https://verify.newleafpayroll.ca/track?uid="  # Change to your IP or ngrok URL
+FROM_ADDRESS = ""
+TRACKING_BASE_URL = "" 
 
 
 
@@ -26,7 +26,7 @@ with open("recipients.csv", newline="") as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         recipient_email = row["email"]
-        tracking_url = generate_tracking_link(recipient_email)  # Use the function correctly
+        tracking_url = generate_tracking_link(recipient_email) 
         
         personalized_html = html_template.replace("{{TRACKING_URL}}", tracking_url)
 
